@@ -1,0 +1,40 @@
+timer_get_address:
+    ldr r0, =0x20003000
+    mov pc, lr
+
+.globl timer_wait
+
+timer_wait:
+    time .req r0
+    timerAddress .req r1
+    lower .req r2
+    upper .req r3
+    limit .req r4
+
+    push {lr}
+
+    // get timer base address
+    push {time}
+    bl timer_get_address
+    mov timerAddress, r0
+    pop {time}
+
+    // get end time
+    ldrd lower, upper, [timerAddress, #4]
+    add limit, lower, time
+
+    // loop until end time reached
+    loop$:
+        ldrd lower, upper, [timerAddress, #4]
+        cmp lower, limit
+        blt loop$
+
+    // unassign variable names
+    .unreq time
+    .unreq timerAddress
+    .unreq lower
+    .unreq upper
+    .unreq limit
+
+    pop {lr}
+    mov pc, lr
