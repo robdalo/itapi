@@ -1,72 +1,71 @@
 .globl framebuffer_init
 
 framebuffer_init:
-    xRes .req r0
-    yRes .req r1
-    bitDepth .req r2
-    configAddress .req r3
-    adjustedConfigAddress .req r4
-    channel .req r5
-    response .req r6
+    width .req r0
+    height .req r1
+    bit_depth .req r2
+
+    framebuffer_container .req r3
+    channel .req r4
+    response .req r5
 
     push {lr}
 
     // configure screen resolution
-    ldr configAddress, =framebuffer_config
-    str xRes, [configAddress, #0]
-    str yRes, [configAddress, #4]
-    str xRes, [configAddress, #8]
-    str yRes, [configAddress, #12]
-    str bitDepth, [configAddress, #20]
+    ldr framebuffer_container, =framebuffer_container_current
+    str width, [framebuffer_container, #0]
+    str height, [framebuffer_container, #4]
+    str width, [framebuffer_container, #8]
+    str height, [framebuffer_container, #12]
+    str bit_depth, [framebuffer_container, #20]
 
-    // adjust config address and set channel
-    add adjustedConfigAddress, configAddress, #0x40000000
+    // adjust framebuffer container address for consumption by gpu
+    // set mailbox channel
+    add framebuffer_container, #0x40000000
     mov channel, #1
 
     // write framebuffer request to mailbox
-    push {xRes, yRes, bitDepth, configAddress, adjustedConfigAddress}
-    mov r0, adjustedConfigAddress
+    push {channel}
+    mov r0, framebuffer_container
     mov r1, channel
     bl mailbox_write
-    pop {xRes, yRes, bitDepth, configAddress, adjustedConfigAddress}
+    pop {channel}
     
     // read framebuffer request response from mailbox
-    push {xRes, yRes, bitDepth, configAddress, adjustedConfigAddress}
+    push {channel}
     mov r0, channel
     bl mailbox_read
     mov response, r0
-    pop {xRes, yRes, bitDepth, configAddress, adjustedConfigAddress}
+    pop {channel}
     
     // check request was successful
     teq response, #0
     movne r0, #0
-    bne led_debug
-    // bne framebuffer_init_finally$
+    bne framebuffer_init_finally$
 
-    ldr r0, =framebuffer_config
+    ldr r0, =framebuffer_container_current
     
     framebuffer_init_finally$:
-    
-        // unassign variable names
-        .unreq xRes
-        .unreq yRes
-        .unreq bitDepth
-        .unreq configAddress
-        .unreq adjustedConfigAddress
+
+        .unreq width
+        .unreq height
+        .unreq bit_depth
+
+        .unreq framebuffer_container
         .unreq channel
         .unreq response
 
         pop {lr}
-        mov pc, lr
+        mov pc, lr  
 
 .globl framebuffer_test
 
 framebuffer_test:
-    configAddress .req r0
-    framebuffer .req r1
-    xRes .req r2
-    yRes .req r3
-    bitDepth .req r4
+    width .req r0
+    height .req r1
+    bit_depth .req r2
+    framebuffer_container .req r3
+    framebuffer .req r4
     x .req r5
     y .req r6
     colour .req r7
@@ -74,44 +73,44 @@ framebuffer_test:
     push {lr}
 
     // framebuffer config
-    ldr xRes, =1920 // x resolution
-    ldr yRes, =1080 // y resolution
-    ldr bitDepth, =16 // bit depth
+    ldr width, =1920 // x axis
+    ldr height, =1080 // y axis
+    ldr bit_depth, =16 // bit depth
 
     // initiate framebuffer
-    push {xRes, yRes, bitDepth}
-    mov r0, xRes
-    mov r1, yRes
-    mov r2, bitDepth
+    push {width, height}
+    mov r0, width
+    mov r1, height
+    mov r2, bit_depth
     bl framebuffer_init
-    teq configAddress, #0
-    beq framebuffer_init_error$
-    pop {xRes, yRes, bitDepth}
+    mov framebuffer_container, r0
+    teq framebuffer_container, #0
+    beq framebuffer_test_error$
+    pop {width, height}
 
-    // render test graphics to framebuffer
+    // render test pixels to framebuffer
     render$:
-        ldr framebuffer, [configAddress, #32]
-        mov y, yRes
+        ldr framebuffer, [framebuffer_container, #32]
+        mov y, height
         mov colour, #7
-        drawRow$:
-            mov x, xRes
-            drawPixel$:
+        draw_row$:
+            mov x, width
+            draw_pixel$:
                 strh colour, [framebuffer]
                 add framebuffer, #2
                 sub x, #1
                 teq x, #0
-                bne drawPixel$
+                bne draw_pixel$
             sub y, #1
             teq y, #0
-            bne drawRow$
+            bne draw_row$
         b render$
 
-    // unassign variable names
-    .unreq configAddress
-    .unreq framebuffer
-    .unreq xRes
-    .unreq yRes
-    .unreq bitDepth
+    .unreq width
+    .unreq height
+    .unreq bit_depth
+    .unreq framebuffer_container
+    .unreq framebuffer    
     .unreq x
     .unreq y
     .unreq colour
@@ -119,16 +118,16 @@ framebuffer_test:
     pop {lr}
     mov pc, lr
 
-    framebuffer_init_error$:
+    framebuffer_test_error$:
         bl led_debug
 
 .section .data
 
 .align 4
 
-.globl framebuffer_config
+.globl framebuffer_container_current
 
-framebuffer_config:
+framebuffer_container_current:
     .int 0 // 0 - width
     .int 0 // 4 - height
     .int 0 // 8 - virtual width

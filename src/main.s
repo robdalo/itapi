@@ -11,5 +11,4 @@ main:
     // set stack pointer
     mov sp, #0x8000
 
-    // framebuffer test
-    bl framebuffer_test
+    bl drawing_test

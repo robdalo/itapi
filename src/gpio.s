@@ -5,41 +5,42 @@ gpio_get_address:
 .globl gpio_set_function
 
 gpio_set_function:
-    pinNum .req r0
-    pinFunc .req r1
-    pinFuncAddress .req r2
+    pin_number .req r0
+    pin_function .req r1
+
+    pin_function_address .req r2
     temp .req r3
 
     push {lr}
 
     // validate inputs
-    cmp pinNum, #53
-    cmpls pinFunc, #7
+    cmp pin_number, #53
+    cmpls pin_function, #7
     bhi gpio_set_function_finally$
 
     // get gpio base address
-    push {pinNum}
+    push {pin_number}
     bl gpio_get_address
-    mov pinFuncAddress, r0
-    pop {pinNum}
+    mov pin_function_address, r0
+    pop {pin_number}
     
     // get address for gpio pin function
-    mov temp, pinNum
+    mov temp, pin_number
     loop$:
         cmp temp, #9
         subhi temp, #10
-        addhi pinFuncAddress, #4
+        addhi pin_function_address, #4
         bhi loop$
 
     // configure gpio pin function
     add temp, temp, lsl #1
-    lsl pinFunc, temp
-    str pinFunc, [pinFuncAddress]
+    lsl pin_function, temp
+    str pin_function, [pin_function_address]
 
-    // unassign variable names
-    .unreq pinNum
-    .unreq pinFunc
-    .unreq pinFuncAddress
+    .unreq pin_number
+    .unreq pin_function
+
+    .unreq pin_function_address
     .unreq temp
 
     gpio_set_function_finally$:
@@ -49,43 +50,45 @@ gpio_set_function:
 .globl gpio_set
 
 gpio_set:
-    pinNum .req r0
-    pinVal .req r1
-    pinBank .req r2
-    gpioAddress .req r3
+    pin_number .req r0
+    pin_value .req r1
+
+    pin_bank .req r2
+    gpio_address .req r3
     bitset .req r4
 
     push {lr}
 
     // validate input
-    cmp pinNum, #53
+    cmp pin_number, #53
     bhi gpio_set_finally$
 
     // get gpio base address
-    push {pinNum}
+    push {pin_number}
     bl gpio_get_address
-    mov gpioAddress, r0
-    pop {pinNum}
+    mov gpio_address, r0
+    pop {pin_number}
 
     // get the gpio pin bank
-    lsr pinBank, pinNum, #5
-    lsl pinBank, #2
-    add gpioAddress, pinBank
+    lsr pin_bank, pin_number, #5
+    lsl pin_bank, #2
+    add gpio_address, pin_bank
 
     // get bit set
-    and pinNum, #31
+    and pin_number, #31
     mov bitset, #1
-    lsl bitset, pinNum
+    lsl bitset, pin_number
 
     // set or clear gpio pin
-    teq pinVal, #0
-    streq bitset, [gpioAddress, #40]
-    strne bitset, [gpioAddress, #28]
+    teq pin_value, #0
+    streq bitset, [gpio_address, #40]
+    strne bitset, [gpio_address, #28]
 
-    .unreq pinNum
-    .unreq pinVal
-    .unreq pinBank
-    .unreq gpioAddress
+    .unreq pin_number
+    .unreq pin_value
+    
+    .unreq pin_bank
+    .unreq gpio_address
     .unreq bitset
 
     gpio_set_finally$:

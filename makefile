@@ -1,7 +1,13 @@
-all: clean kernel.img
+INSTALL_DEVICE = /dev/sdc1
+INSTALL_PATH = /media/robd/bootfs
+
+all: clean kernel.img install
 
 main.o: src/main.s
 	arm-none-eabi-as -o main.o src/main.s
+
+drawing.o: src/drawing.s
+	arm-none-eabi-as -o drawing.o src/drawing.s
 
 framebuffer.o: src/framebuffer.s
 	arm-none-eabi-as -o framebuffer.o src/framebuffer.s	
@@ -18,9 +24,15 @@ mailbox.o: src/mailbox.s
 timer.o: src/timer.s
 	arm-none-eabi-as -o timer.o src/timer.s
 
-kernel.img: main.o framebuffer.o gpio.o led.o mailbox.o timer.o
-	arm-none-eabi-ld -nostdlib main.o framebuffer.o gpio.o led.o mailbox.o timer.o -T kernel.ld -o kernel.elf
+kernel.img: main.o drawing.o framebuffer.o gpio.o led.o mailbox.o timer.o
+	arm-none-eabi-ld -nostdlib main.o drawing.o framebuffer.o gpio.o led.o mailbox.o timer.o -T kernel.ld -o kernel.elf
 	arm-none-eabi-objcopy -O binary kernel.elf kernel.img
 
 clean:
 	rm -rf *.elf *.o *.img
+
+install:
+	mkdir -p $(INSTALL_PATH)
+	mount $(INSTALL_DEVICE) $(INSTALL_PATH)
+	cp kernel.img $(INSTALL_PATH)/kernel.img
+	umount $(INSTALL_DEVICE)

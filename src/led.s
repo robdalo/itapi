@@ -1,17 +1,16 @@
 led_configure:
-    pinNum .req r0
-    pinFunc .req r1
+    pin_number .req r0
+    pin_function .req r1
 
     push {lr}
 
     // set gpio pin 16 to output function
-    mov pinNum, #16
-    mov pinFunc, #1
+    mov pin_number, #16
+    mov pin_function, #1
     bl gpio_set_function
 
-    // unassign variable names
-    .unreq pinNum
-    .unreq pinFunc
+    .unreq pin_number
+    .unreq pin_function
 
     pop {lr}
     mov pc, lr
@@ -96,35 +95,35 @@ led_flash:
     mov pc, lr
 
 led_off:
-    pinNum .req r0
-    pinVal .req r1
+    pin_number .req r0
+    pin_value .req r1
 
     push {lr}
 
     // turn led off
-    mov pinNum, #16
-    mov pinVal, #1
+    mov pin_number, #16
+    mov pin_value, #1
     bl gpio_set
 
-    .unreq pinNum
-    .unreq pinVal
+    .unreq pin_number
+    .unreq pin_value
 
     pop {lr}
     mov pc, lr
 
 led_on:
-    pinNum .req r0
-    pinVal .req r1
+    pin_number .req r0
+    pin_value .req r1
 
     push {lr}
 
     // turn led on
-    mov pinNum, #16
-    mov pinVal, #0
+    mov pin_number, #16
+    mov pin_value, #0
     bl gpio_set
 
-    .unreq pinNum
-    .unreq pinVal
+    .unreq pin_number
+    .unreq pin_value
 
     pop {lr}
     mov pc, lr
