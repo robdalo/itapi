@@ -1,3 +1,5 @@
+.section .text
+
 timer_get_address:
     ldr r0, =0x20003000
     mov pc, lr

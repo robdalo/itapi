@@ -1,4 +1,4 @@
-.section .init
+.section .text.boot
 
 .globl _start
 
@@ -11,4 +11,4 @@ main:
     // set stack pointer
     mov sp, #0x8000
 
-    bl drawing_test
+    bl terminal_test           

@@ -1,3 +1,5 @@
+.section .text
+
 mailbox_get_address:
     ldr r0, =0x2000b880
     mov pc, lr

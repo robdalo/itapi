@@ -1,3 +1,5 @@
+.section .text
+
 gpio_get_address:
     ldr r0, =0x20200000
     mov pc, lr

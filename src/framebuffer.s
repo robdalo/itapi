@@ -1,3 +1,5 @@
+.section .text
+
 .globl framebuffer_init
 
 framebuffer_init:
@@ -92,7 +94,7 @@ framebuffer_test:
     render$:
         ldr framebuffer, [framebuffer_container, #32]
         mov y, height
-        mov colour, #7
+        ldr colour, =255
         draw_row$:
             mov x, width
             draw_pixel$:

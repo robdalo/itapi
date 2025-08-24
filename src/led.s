@@ -1,3 +1,5 @@
+.section .text
+
 led_configure:
     pin_number .req r0
     pin_function .req r1
