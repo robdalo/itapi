@@ -1,9 +1,5 @@
 .section .text
 
-gpio_get_address:
-    ldr r0, =0x20200000
-    mov pc, lr
-
 .globl gpio_set_function
 
 gpio_set_function:
@@ -21,11 +17,9 @@ gpio_set_function:
     bhi gpio_set_function_finally$
 
     // get gpio base address
-    push {pin_number}
-    bl gpio_get_address
-    mov pin_function_address, r0
-    pop {pin_number}
-    
+    ldr pin_function_address, =gpio_base_address
+    ldr pin_function_address, [pin_function_address]
+   
     // get address for gpio pin function
     mov temp, pin_number
     loop$:
@@ -66,10 +60,8 @@ gpio_set:
     bhi gpio_set_finally$
 
     // get gpio base address
-    push {pin_number}
-    bl gpio_get_address
-    mov gpio_address, r0
-    pop {pin_number}
+    ldr gpio_address, =gpio_base_address
+    ldr gpio_address, [gpio_address]
 
     // get the gpio pin bank
     lsr pin_bank, pin_number, #5
@@ -96,3 +88,8 @@ gpio_set:
     gpio_set_finally$:
         pop {lr}
         mov pc, lr
+
+.section .rodata
+
+gpio_base_address:
+    .int 0x20200000

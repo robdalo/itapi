@@ -1,9 +1,5 @@
 .section .text
 
-mailbox_get_address:
-    ldr r0, =0x2000b880
-    mov pc, lr
-
 .globl mailbox_read
 
 mailbox_read:
@@ -17,10 +13,8 @@ mailbox_read:
     push {lr}
 
     // get mailbox address
-    push {channel}
-    bl mailbox_get_address
-    mov mailbox_address, r0
-    pop {channel}
+    ldr mailbox_address, =mailbox_base_address
+    ldr mailbox_address, [mailbox_address]
 
     read_message$:
 
@@ -69,10 +63,8 @@ mailbox_write:
     add mail, message, channel
 
     // get mailbox address
-    push {message}
-    bl mailbox_get_address
-    mov mailbox_address, r0
-    pop {message}
+    ldr mailbox_address, =mailbox_base_address
+    ldr mailbox_address, [mailbox_address]
 
     // wait for mailbox send status to be OK before sending
     // ready to write is indicated by bit 31 being set to 0, not 1
@@ -93,3 +85,8 @@ mailbox_write:
 
     pop {lr}
     mov pc, lr
+
+.section .rodata
+
+mailbox_base_address:
+    .int 0x2000b880

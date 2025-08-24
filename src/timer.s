@@ -1,9 +1,5 @@
 .section .text
 
-timer_get_address:
-    ldr r0, =0x20003000
-    mov pc, lr
-
 .globl timer_wait
 
 timer_wait:
@@ -16,12 +12,10 @@ timer_wait:
 
     push {lr}
 
-    // get timer base address
-    push {time}
-    bl timer_get_address
-    mov timer_address, r0
-    pop {time}
-
+    // get base address
+    ldr timer_address, =timer_base_address
+    ldr timer_address, [timer_address]
+    
     // get end time
     ldrd lower, upper, [timer_address, #4]
     add limit, lower, time
@@ -41,3 +35,8 @@ timer_wait:
 
     pop {lr}
     mov pc, lr
+
+.section .rodata
+
+timer_base_address:
+    .int 0x20003000

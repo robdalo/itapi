@@ -1,22 +1,5 @@
 .section .text
 
-terminal_get_font_address:
-    offset .req r0
-
-    baseAddress .req r1
-
-    push {lr}
-
-    ldr baseAddress, =terminal_font_vga_8x16
-    ldr r0, [baseAddress, offset]
-
-    .unreq offset
-
-    .unreq baseAddress
-
-    pop {lr}
-    mov pc, lr
-
 terminal_draw_char_pixel:
     x .req r0
     y .req r1
